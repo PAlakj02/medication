@@ -90,18 +90,35 @@ async function parseErrorDetail(response: Response): Promise<string> {
 }
 
 export async function analyzeMedications(input: string): Promise<AnalyzeResponse> {
-  const idToken = await getCurrentIdToken();
+  let idToken: string | null;
+  try {
+    idToken = await getCurrentIdToken();
+  } catch (err) {
+    // Firebase's token refresh can throw raw errors (e.g. Safari Private
+    // Browsing blocking the IndexedDB persistence it relies on) — wrap so
+    // the UI always shows a real reason instead of a generic fallback.
+    const message = err instanceof Error ? err.message : String(err);
+    throw new ApiError(`Couldn't verify your sign-in: ${message}`, 401);
+  }
   if (!idToken) {
     throw new ApiError("You need to sign in before analyzing medications.", 401);
   }
-  const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ input }),
-  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ input }),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new ApiError(`Couldn't reach the server: ${message}`);
+  }
+
   if (!response.ok) {
     throw new ApiError(await parseErrorDetail(response), response.status);
   }
