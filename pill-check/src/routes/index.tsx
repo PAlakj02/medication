@@ -64,6 +64,21 @@ const severityStyles: Record<SeverityKey, { chip: string; dot: string; label: st
 
 const gradedRank: Record<Severity, number> = { low: 0, moderate: 1, high: 2 };
 
+const KNOWN_AUTH_ERROR_MESSAGES: Record<string, string> = {
+  "auth/unauthorized-domain":
+    "This domain isn't authorized for sign-in yet. Add it in the Firebase console under Authentication → Settings → Authorized domains.",
+  "auth/operation-not-allowed":
+    "Google sign-in isn't enabled for this project yet. Enable it in the Firebase console under Authentication → Sign-in method → Google.",
+};
+
+function describeAuthError(err: unknown): string {
+  const code = (err as { code?: string })?.code ?? "unknown";
+  // Always include the real code, even when we don't have a friendlier
+  // message for it — a blanket "try again" with no code is undebuggable
+  // without dev tools.
+  return `${KNOWN_AUTH_ERROR_MESSAGES[code] ?? "Sign-in failed."} (${code})`;
+}
+
 function worstSeverity(interactions: AnalyzeResponse["interactions"]): SeverityKey | null {
   const graded = interactions.filter((i): i is typeof i & { severity: Severity } => i.severity !== null);
   if (graded.length > 0) {
@@ -88,14 +103,7 @@ function Index() {
     // Surfaces the real reason if the user just landed back here from the
     // Google redirect and it failed (e.g. unauthorized domain) — onAuthChange
     // alone would just silently stay "signed-out" with no explanation.
-    consumeRedirectResult().catch((err: unknown) => {
-      const code = (err as { code?: string })?.code;
-      setSignInError(
-        code === "auth/unauthorized-domain"
-          ? "This domain isn't authorized for sign-in yet. Add it in the Firebase console under Authentication → Settings → Authorized domains."
-          : "Sign-in failed. Please try again.",
-      );
-    });
+    consumeRedirectResult().catch((err: unknown) => setSignInError(describeAuthError(err)));
     return onAuthChange((u) => {
       setUser(u);
       setAuthStatus(u ? "signed-in" : "signed-out");
@@ -125,7 +133,7 @@ function Index() {
         <Button
           onClick={() => {
             setSignInError(null);
-            signInWithGoogle().catch(() => setSignInError("Sign-in failed. Please try again."));
+            signInWithGoogle().catch((err: unknown) => setSignInError(describeAuthError(err)));
           }}
           className="bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
         >
