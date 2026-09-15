@@ -1,6 +1,9 @@
 .DS_Store
 .claude/
 
+# Screenshots dropped in the project root for debugging chats
+Screenshot *.png
+
 # Raw source datasets used to build the local Postgres DB — not needed for
 # deployment (the backend just needs a DB connection string, not these
 # files), and GitHub rejects files over 100MB anyway.
