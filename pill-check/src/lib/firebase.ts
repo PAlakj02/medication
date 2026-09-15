@@ -7,8 +7,9 @@ import { initializeApp } from "firebase/app";
 import {
   GoogleAuthProvider,
   getAuth,
+  getRedirectResult,
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
@@ -33,7 +34,19 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  await signInWithPopup(auth, googleProvider);
+  // Redirect, not popup — popups get silently blocked by Safari Private
+  // Browsing and many mobile browsers, which reads to users as a generic
+  // "sign-in failed" with no clear cause. Redirect is a full navigation,
+  // so it isn't subject to popup/third-party-storage restrictions.
+  await signInWithRedirect(auth, googleProvider);
+}
+
+// Call once on app load: after signInWithGoogle() redirects back, this
+// resolves with the signed-in user (or null if the user just landed here
+// normally, not returning from a redirect). Throws if the redirect flow
+// itself failed (e.g. domain not authorized in Firebase).
+export function consumeRedirectResult(): Promise<User | null> {
+  return getRedirectResult(auth).then((result) => result?.user ?? null);
 }
 
 export async function signOut(): Promise<void> {

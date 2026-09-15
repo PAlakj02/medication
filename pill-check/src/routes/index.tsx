@@ -23,7 +23,7 @@ import {
   type MedicationInfo,
   type Severity,
 } from "@/lib/api";
-import { onAuthChange, signInWithGoogle, signOut, type User } from "@/lib/firebase";
+import { consumeRedirectResult, onAuthChange, signInWithGoogle, signOut, type User } from "@/lib/firebase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -85,6 +85,17 @@ function Index() {
   const [signInError, setSignInError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Surfaces the real reason if the user just landed back here from the
+    // Google redirect and it failed (e.g. unauthorized domain) — onAuthChange
+    // alone would just silently stay "signed-out" with no explanation.
+    consumeRedirectResult().catch((err: unknown) => {
+      const code = (err as { code?: string })?.code;
+      setSignInError(
+        code === "auth/unauthorized-domain"
+          ? "This domain isn't authorized for sign-in yet. Add it in the Firebase console under Authentication → Settings → Authorized domains."
+          : "Sign-in failed. Please try again.",
+      );
+    });
     return onAuthChange((u) => {
       setUser(u);
       setAuthStatus(u ? "signed-in" : "signed-out");
