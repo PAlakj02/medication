@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   analyzeMedications,
@@ -23,7 +25,7 @@ import {
   type MedicationInfo,
   type Severity,
 } from "@/lib/api";
-import { consumeRedirectResult, onAuthChange, signInWithGoogle, signOut, type User } from "@/lib/firebase";
+import { onAuthChange, signInWithEmail, signOut, signUpWithEmail, type User } from "@/lib/firebase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,10 +67,15 @@ const severityStyles: Record<SeverityKey, { chip: string; dot: string; label: st
 const gradedRank: Record<Severity, number> = { low: 0, moderate: 1, high: 2 };
 
 const KNOWN_AUTH_ERROR_MESSAGES: Record<string, string> = {
-  "auth/unauthorized-domain":
-    "This domain isn't authorized for sign-in yet. Add it in the Firebase console under Authentication → Settings → Authorized domains.",
   "auth/operation-not-allowed":
-    "Google sign-in isn't enabled for this project yet. Enable it in the Firebase console under Authentication → Sign-in method → Google.",
+    "Email/password sign-in isn't enabled for this project yet. Enable it in the Firebase console under Authentication → Sign-in method → Email/Password.",
+  "auth/email-already-in-use": "An account already exists with this email. Try signing in instead.",
+  "auth/invalid-email": "That doesn't look like a valid email address.",
+  "auth/weak-password": "Password must be at least 6 characters.",
+  "auth/invalid-credential": "Incorrect email or password.",
+  "auth/wrong-password": "Incorrect email or password.",
+  "auth/user-not-found": "No account found with this email. Try creating one instead.",
+  "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
 };
 
 function describeAuthError(err: unknown): string {
@@ -97,18 +104,35 @@ type AuthStatus = "checking" | "signed-out" | "signed-in";
 function Index() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<User | null>(null);
+  const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Surfaces the real reason if the user just landed back here from the
-    // Google redirect and it failed (e.g. unauthorized domain) — onAuthChange
-    // alone would just silently stay "signed-out" with no explanation.
-    consumeRedirectResult().catch((err: unknown) => setSignInError(describeAuthError(err)));
     return onAuthChange((u) => {
       setUser(u);
       setAuthStatus(u ? "signed-in" : "signed-out");
     });
   }, []);
+
+  const submitAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignInError(null);
+    setAuthSubmitting(true);
+    try {
+      if (authMode === "sign-up") {
+        await signUpWithEmail(email, password);
+      } else {
+        await signInWithEmail(email, password);
+      }
+    } catch (err) {
+      setSignInError(describeAuthError(err));
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
 
   if (authStatus === "checking") {
     return (
@@ -127,19 +151,62 @@ function Index() {
           </span>
           <h1 className="text-lg font-bold text-foreground">SaltCheck</h1>
           <p className="max-w-xs text-xs text-muted-foreground">
-            Sign in to analyze your medications and supplements for interactions.
+            {authMode === "sign-up" ? "Create an account" : "Sign in"} to analyze your medications and
+            supplements for interactions.
           </p>
         </div>
-        <Button
+
+        <form onSubmit={submitAuth} className="flex w-full max-w-xs flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email" className="text-xs">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="password" className="text-xs">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete={authMode === "sign-up" ? "new-password" : "current-password"}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={authSubmitting}
+            className="bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
+          >
+            {authSubmitting ? "Please wait…" : authMode === "sign-up" ? "Create account" : "Sign in"}
+          </Button>
+          {signInError && <p className="text-xs text-danger">{signInError}</p>}
+        </form>
+
+        <button
+          type="button"
           onClick={() => {
+            setAuthMode((m) => (m === "sign-up" ? "sign-in" : "sign-up"));
             setSignInError(null);
-            signInWithGoogle().catch((err: unknown) => setSignInError(describeAuthError(err)));
           }}
-          className="bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
         >
-          Continue with Google
-        </Button>
-        {signInError && <p className="text-xs text-danger">{signInError}</p>}
+          {authMode === "sign-up" ? "Already have an account? Sign in" : "Need an account? Create one"}
+        </button>
+
         <p className="max-w-xs text-center text-[11px] text-muted-foreground/80">
           We only use this to identify you. No medication data is stored or linked to your account.
         </p>

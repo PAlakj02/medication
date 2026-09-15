@@ -2,14 +2,18 @@
 // we deliberately never persist per-user data (see project decision to
 // keep the backend stateless per-request). This file only produces an
 // identity and an ID token to attach to backend requests.
+//
+// Email/password, not Google OAuth — the OAuth popup/redirect flow proved
+// unreliable across Safari Private Browsing and iOS in practice (blocked
+// popups, authorized-domain edge cases). Email/password is a direct SDK
+// call with no cross-origin redirect involved.
 
 import { initializeApp } from "firebase/app";
 import {
-  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   getAuth,
-  getRedirectResult,
   onAuthStateChanged,
-  signInWithRedirect,
+  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
@@ -25,7 +29,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 export type { User };
 
@@ -33,20 +36,12 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
   return onAuthStateChanged(auth, callback);
 }
 
-export async function signInWithGoogle(): Promise<void> {
-  // Redirect, not popup — popups get silently blocked by Safari Private
-  // Browsing and many mobile browsers, which reads to users as a generic
-  // "sign-in failed" with no clear cause. Redirect is a full navigation,
-  // so it isn't subject to popup/third-party-storage restrictions.
-  await signInWithRedirect(auth, googleProvider);
+export async function signUpWithEmail(email: string, password: string): Promise<void> {
+  await createUserWithEmailAndPassword(auth, email, password);
 }
 
-// Call once on app load: after signInWithGoogle() redirects back, this
-// resolves with the signed-in user (or null if the user just landed here
-// normally, not returning from a redirect). Throws if the redirect flow
-// itself failed (e.g. domain not authorized in Firebase).
-export function consumeRedirectResult(): Promise<User | null> {
-  return getRedirectResult(auth).then((result) => result?.user ?? null);
+export async function signInWithEmail(email: string, password: string): Promise<void> {
+  await signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function signOut(): Promise<void> {
