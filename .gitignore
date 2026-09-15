@@ -1,0 +1,14 @@
+.DS_Store
+.claude/
+
+# Raw source datasets used to build the local Postgres DB — not needed for
+# deployment (the backend just needs a DB connection string, not these
+# files), and GitHub rejects files over 100MB anyway.
+RxNorm_full_prescribe_09082026/
+ddinter/
+aliases.csv
+inn_usan_map.csv
+indian_medicine_data.csv
+drugs.csv - Sheet1.csv
+interactions.csv - Sheet1.csv
+Product List_8_9_2026 @ 15_54_10.csv

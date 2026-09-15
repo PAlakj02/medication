@@ -1,0 +1,32 @@
+# Golden interaction pairs — the source of truth for
+# tests/test_golden_interactions.py, a real integration test against the
+# loaded DB (requires scripts/run_ingest.py to have been run — this is NOT
+# a hermetic/synthetic test suite).
+#
+# Format: drug_a,drug_b,expected_state,expected_severity,note
+#   drug_a, drug_b        — any name the ingredient resolver can reach
+#                            (canonical name, SY/INN-USAN/curated alias —
+#                            see app.ingest.ingredient_resolver).
+#   expected_state         — one of: found, checked_none_found,
+#                            not_checked_source_gap. See
+#                            app.findings.models.PairState.
+#   expected_severity       — only checked when expected_state=found. One
+#                            of: high, moderate, low, ungraded. Leave blank
+#                            for checked_none_found / not_checked_source_gap
+#                            (there is no finding to have a severity).
+#   note                    — why this pair is in the set / what it proves.
+#
+# A pair that fails to resolve to a real ingredient is a TEST FAILURE, not
+# a skip — a typo here or a genuine new gap both need to be seen, not
+# silently passed over. Seeded below with real, verified examples spanning
+# all three states; extend freely.
+drug_a,drug_b,expected_state,expected_severity,note
+calcium carbonate,dolutegravir,found,high,Real DDInter rule between two canonical (rxcui-bearing) RxNorm ingredients
+metformin,dolutegravir,found,moderate,Real DDInter rule; different severity from the calcium carbonate example above
+simvastatin,goserelin,found,ungraded,DDInter recorded this pair with severity "Unknown" -- must still be FOUND with severity_ungraded=true, not dropped or misreported as checked_none_found
+naltrexone,dolutegravir,checked_none_found,,Both individually mentioned by DDInter (covered) but no rule pairs them directly -- a genuine "checked, nothing found"
+naltrexone,aprepitant,checked_none_found,,Second checked_none_found example for variety
+aspirin,warfarin,found,high,"UPDATED 2026-09-09: was not_checked_source_gap (DDInter's raw data calls this drug ""Acetylsalicylic acid"", not ""Aspirin"", so canonical ""aspirin"" had zero DDInter mentions). Fixed by adding acetylsalicylic-acid/aspirin to data/inn_usan_map.csv and rebuilding from empty tables so the alias resolves BEFORE any orphan gets created. Now a real, correctly-attributed high-severity finding -- exactly the fix this golden pair existed to detect."
+aspirin,ibuprofen,found,high,"UPDATED 2026-09-09: same root cause and same fix as aspirin+warfarin above -- now a real high-severity finding instead of a coverage gap."
+aspirin,acetaminophen,found,ungraded,"UPDATED 2026-09-09: same alias fix closed aspirin's coverage gap. DDInter DOES have a direct aspirin+acetaminophen rule, recorded with severity ""Unknown"" (ungraded) -- corrected from an earlier wrong guess of checked_none_found, caught by a case-sensitive manual psql query missing the row; the golden test itself got this right immediately."
+domperidone,ibuprofen,not_checked_source_gap,,"ADDED 2026-09-09 to replace the aspirin gap examples above, now fixed. Domperidone is a real, internationally common anti-nausea drug not FDA-approved in the US -- absent from RxNorm entirely (no rxcui) and DDInter has zero data on it. A genuine, currently-unfixable source gap (there is no US RxCUI to alias to), unlike aspirin's naming-only gap."

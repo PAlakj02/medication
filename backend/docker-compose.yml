@@ -1,0 +1,24 @@
+services:
+  db:
+    # NOT plain postgres:16: the initial migration runs `CREATE EXTENSION
+    # vector`, which requires the pgvector extension files to be present in
+    # the Postgres installation. This image is Postgres 16 with pgvector
+    # pre-built in — pg_trgm needs no extra image, it ships in core Postgres.
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pillcheck
+      POSTGRES_PASSWORD: pillcheck
+      POSTGRES_DB: pillcheck
+    ports:
+      - "5432:5432"
+    volumes:
+      - pillcheck_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pillcheck -d pillcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pillcheck_pgdata:
