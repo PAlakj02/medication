@@ -195,6 +195,37 @@ interface SourceCitation {
   recognized in our database" card (`index.tsx:183-190`). Don't omit
   unmatched tokens from `items`.
 
+### Timing guidance (added 2026-09-16)
+
+`AnalyzeResponse` now has a third top-level field:
+
+```typescript
+interface TimingGuidance {
+  medication: MedicationRef;
+  ruleType: "separate_from" | "take_with_food" | "take_on_empty_stomach" | "avoid_alcohol" | "monitor";
+  offsetMinutes: number | null;
+  note: string;
+  citation: SourceCitation;
+}
+
+interface AnalyzeResponse {
+  items: DetectedItem[];
+  interactions: InteractionWarning[];
+  timing: TimingGuidance[];
+}
+```
+
+**Important — this is a deliberately small, curated set** (currently 5 rules
+across 4 ingredients: levothyroxine, doxycycline, alendronate,
+metronidazole), sourced from real FDA/DailyMed drug labels, never
+fabricated. Absence of a `TimingGuidance` entry for a given medication
+means **"not yet curated"**, never **"no timing considerations apply"** —
+do not render an empty `timing` array as "nothing to worry about." Recommend
+a neutral fallback like "No specific timing guidance in our data — check
+with your pharmacist" rather than omitting the section, matching the same
+honesty principle already applied to `not_checked_source_gap` for
+interactions.
+
 ---
 
 ## 2. `GET /api/health` — recommended addition, not currently called

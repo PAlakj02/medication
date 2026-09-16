@@ -57,6 +57,23 @@ class InteractionWarning(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class TimingGuidance(BaseModel):
+    """A single-ingredient dosing-timing note (e.g. "take on an empty
+    stomach"). Only present for ingredients with a curated rule — absence
+    here means "not yet curated", never "no timing considerations apply".
+    See app.ingest.timing_rules and docs/api-contract.md.
+    """
+
+    medication: MedicationRef
+    rule_type: str = Field(..., alias="ruleType")
+    offset_minutes: int | None = Field(None, alias="offsetMinutes")
+    note: str
+    citation: SourceCitation
+
+    model_config = {"populate_by_name": True}
+
+
 class AnalyzeResponse(BaseModel):
     items: list[DetectedItem]
     interactions: list[InteractionWarning]
+    timing: list[TimingGuidance]

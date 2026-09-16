@@ -19,7 +19,8 @@ from app.explain.llm import explain_finding
 from app.explain.models import ExplanationRequest
 from app.findings.engine import find_interactions
 from app.findings.models import Finding
-from app.findings.repository import load_interaction_rules
+from app.findings.repository import load_interaction_rules, load_timing_rules
+from app.findings.timing import find_timing_findings
 from app.linking.resolver import LinkResult, resolve
 from app.models.ingredient import Ingredient
 from app.models.product_ingredient import ProductIngredient
@@ -30,6 +31,7 @@ from app.schemas.analyze import (
     InteractionWarning,
     MedicationInfo,
     SuggestedMedication,
+    TimingGuidance,
 )
 from app.schemas.common import MedicationRef, SourceCitation
 
@@ -202,4 +204,17 @@ def analyze(
         for f in findings
     ]
 
-    return AnalyzeResponse(items=items, interactions=interactions)
+    timing_rules = load_timing_rules(db, recognized_ingredient_ids)
+    timing_findings = find_timing_findings(recognized_ingredient_ids, timing_rules)
+    timing = [
+        TimingGuidance(
+            medication=MedicationRef(id=str(t.ingredient.id), name=t.ingredient.name),
+            ruleType=t.rule_type,
+            offsetMinutes=t.offset_minutes,
+            note=t.note,
+            citation=SourceCitation(source=t.source.name, reference=t.source.reference, url=t.source.url),
+        )
+        for t in timing_findings
+    ]
+
+    return AnalyzeResponse(items=items, interactions=interactions, timing=timing)

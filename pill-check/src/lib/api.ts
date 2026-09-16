@@ -56,9 +56,29 @@ export interface InteractionWarning {
   citation: SourceCitation;
 }
 
+export type TimingRuleType =
+  | "separate_from"
+  | "take_with_food"
+  | "take_on_empty_stomach"
+  | "avoid_alcohol"
+  | "monitor";
+
+export interface TimingGuidance {
+  medication: MedicationRef;
+  ruleType: TimingRuleType;
+  offsetMinutes: number | null;
+  note: string;
+  citation: SourceCitation;
+}
+
 export interface AnalyzeResponse {
   items: DetectedItem[];
   interactions: InteractionWarning[];
+  // A deliberately small, curated set (see docs/api-contract.md) — a
+  // medication missing here means "not yet curated", never "no timing
+  // considerations apply". Never render an empty array as a clean bill of
+  // health.
+  timing: TimingGuidance[];
 }
 
 export interface HealthResponse {

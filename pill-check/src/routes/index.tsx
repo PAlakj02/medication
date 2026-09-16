@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  Clock,
   HelpCircle,
   Info,
   LogOut,
@@ -65,6 +66,14 @@ const severityStyles: Record<SeverityKey, { chip: string; dot: string; label: st
 };
 
 const gradedRank: Record<Severity, number> = { low: 0, moderate: 1, high: 2 };
+
+const TIMING_RULE_LABELS: Record<string, string> = {
+  separate_from: "Take apart from certain other medications",
+  take_with_food: "Take with food",
+  take_on_empty_stomach: "Take on an empty stomach",
+  avoid_alcohol: "Avoid alcohol",
+  monitor: "Needs monitoring",
+};
 
 const KNOWN_AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/operation-not-allowed":
@@ -237,6 +246,7 @@ function Analyzer({ user }: { user: User | null }) {
   );
   const interactions = result?.interactions ?? [];
   const worst = useMemo(() => worstSeverity(interactions), [interactions]);
+  const timing = result?.timing ?? [];
 
   const analyze = async (text?: string) => {
     const input = (text ?? value).trim();
@@ -500,6 +510,53 @@ function Analyzer({ user }: { user: User | null }) {
                 )}
               </ul>
             </div>
+          </section>
+        )}
+
+        {status === "success" && known.length > 0 && (
+          <section className="mt-4 card-surface p-4">
+            <CardHeader icon={<Clock className="size-4" />} title="Dosing & timing" count={timing.length} />
+            <ul className="mt-3 space-y-2">
+              {known.map((m) => {
+                const rulesForMed = timing.filter((t) => t.medication.id === m.id);
+                return (
+                  <li key={m.id} className="rounded-lg border border-border/70 p-2.5">
+                    <p className="text-sm font-semibold text-foreground">{m.name}</p>
+                    {rulesForMed.length > 0 ? (
+                      <ul className="mt-1.5 space-y-2">
+                        {rulesForMed.map((rule, idx) => (
+                          <li key={idx}>
+                            <p className="text-xs font-medium text-foreground">
+                              {TIMING_RULE_LABELS[rule.ruleType] ?? rule.ruleType}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">{rule.note}</p>
+                            <p className="mt-0.5 text-[10px] text-muted-foreground/80">
+                              Source:{" "}
+                              {rule.citation.url ? (
+                                <a
+                                  href={rule.citation.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="underline hover:text-foreground"
+                                >
+                                  {rule.citation.source}
+                                </a>
+                              ) : (
+                                rule.citation.source
+                              )}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-muted-foreground/70">
+                        No specific timing guidance in our data — check with your pharmacist.
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </section>
         )}
 

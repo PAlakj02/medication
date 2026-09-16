@@ -17,6 +17,7 @@ from app.ingest.ddinter import DDInterLoader
 from app.ingest.alias_prepass import AliasPrepassLoader
 from app.ingest.indian_medicine import IndianMedicineLoader
 from app.ingest.rxnorm_bulk import RxNormBulkLoader
+from app.ingest.timing_rules import TimingRuleLoader
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -27,6 +28,7 @@ RRF_PATH = DATA_ROOT / "RxNorm_full_prescribe_09082026" / "rrf" / "RXNCONSO.RRF"
 DDINTER_DIR = DATA_ROOT / "ddinter"
 INDIAN_MEDICINE_CSV = DATA_ROOT / "indian_medicine_data.csv"
 CURATED_ALIASES_CSV = BACKEND_ROOT / "data" / "aliases.csv"
+TIMING_RULES_CSV = BACKEND_ROOT / "data" / "timing_rules.csv"
 
 
 def main() -> None:
@@ -37,6 +39,7 @@ def main() -> None:
             DDInterLoader(data_dir=DDINTER_DIR),
             RxNormBulkLoader(rrf_path=RRF_PATH),
             IndianMedicineLoader(csv_path=INDIAN_MEDICINE_CSV),
+            TimingRuleLoader(csv_path=TIMING_RULES_CSV),
         ]
         for loader in loaders:
             result = loader.load(db)
