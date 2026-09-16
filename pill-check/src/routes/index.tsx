@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   AlertTriangle,
+  Camera,
   CheckCircle2,
   Clock,
   HelpCircle,
@@ -27,6 +28,8 @@ import {
   type Severity,
 } from "@/lib/api";
 import { onAuthChange, signInWithEmail, signOut, signUpWithEmail, type User } from "@/lib/firebase";
+import { extractTextFromImage, OcrError } from "@/lib/ocr";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -232,12 +235,32 @@ function Analyzer({ user }: { user: User | null }) {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [health, setHealth] = useState<"checking" | "ok" | "degraded" | "down">("checking");
+  const [ocrReading, setOcrReading] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkHealth()
       .then((r) => setHealth(r.status))
       .catch(() => setHealth("down"));
   }, []);
+
+  const handleImageSelected = async (file: File) => {
+    setOcrError(null);
+    setOcrReading(true);
+    try {
+      const text = await extractTextFromImage(file);
+      if (!text) {
+        setOcrError("Couldn't find any readable text in that image — try a clearer, well-lit photo.");
+        return;
+      }
+      setValue((prev) => (prev.trim() ? `${prev.trim()}\n${text}` : text));
+    } catch (err) {
+      setOcrError(err instanceof OcrError ? err.message : "Couldn't read that image. Please try again.");
+    } finally {
+      setOcrReading(false);
+    }
+  };
 
   const detected = result?.items ?? [];
   const known = useMemo(
@@ -337,6 +360,29 @@ function Analyzer({ user }: { user: User | null }) {
               className="min-h-[96px] flex-1 resize-none border-0 bg-transparent px-0 py-3 text-sm leading-snug text-foreground shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
               rows={4}
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file) handleImageSelected(file);
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={ocrReading}
+              onClick={() => fileInputRef.current?.click()}
+              className="shrink-0"
+              title="Scan text from a photo of packaging or a label"
+            >
+              <Camera className="size-4" />
+            </Button>
             <Button
               onClick={() => analyze()}
               disabled={status === "loading" || !value.trim()}
@@ -346,6 +392,10 @@ function Analyzer({ user }: { user: User | null }) {
               {status === "loading" ? "Analyzing…" : "Analyze"}
             </Button>
           </div>
+          {ocrReading && (
+            <p className="mt-2 text-[11px] text-muted-foreground">Reading text from image…</p>
+          )}
+          {ocrError && <p className="mt-2 text-[11px] text-danger">{ocrError}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-2">
             <span className="text-[11px] text-muted-foreground">Try:</span>
             {EXAMPLES.map((ex) => (
@@ -566,6 +616,7 @@ function Analyzer({ user }: { user: User | null }) {
           or physician before changing any medication.
         </p>
       </main>
+      <SiteFooter />
     </div>
   );
 }
