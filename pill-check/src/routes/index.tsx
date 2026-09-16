@@ -291,42 +291,48 @@ function Analyzer({ user }: { user: User | null }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3">
           <div className="flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ShieldCheck className="size-4" />
             </span>
             <div className="leading-tight">
               <h1 className="text-sm font-bold text-foreground">SaltCheck</h1>
-              <p className="text-[11px] text-muted-foreground">Medication & supplement analyzer</p>
+              <p className="hidden text-[11px] text-muted-foreground sm:block">
+                Medication & supplement analyzer
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
-            <span className="relative flex size-1.5">
-              <span
-                className={`absolute inline-flex size-1.5 animate-ping rounded-full ${
-                  health === "ok" ? "bg-success/30" : "bg-danger/30"
-                }`}
-              />
-              <span
-                className={`relative inline-flex size-1.5 rounded-full ${
-                  health === "ok" ? "bg-success/60" : "bg-danger/60"
-                }`}
-              />
-            </span>
-            {health === "checking" ? "Checking engine…" : health === "ok" ? "Engine online" : "Engine offline"}
-          </div>
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
+              <span className="relative flex size-1.5 shrink-0">
+                <span
+                  className={`absolute inline-flex size-1.5 animate-ping rounded-full ${
+                    health === "ok" ? "bg-success/30" : "bg-danger/30"
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex size-1.5 rounded-full ${
+                    health === "ok" ? "bg-success/60" : "bg-danger/60"
+                  }`}
+                />
+              </span>
+              <span className="hidden sm:inline">
+                {health === "checking" ? "Checking engine…" : health === "ok" ? "Engine online" : "Engine offline"}
+              </span>
+            </div>
             {user?.email && (
-              <span className="hidden text-[11px] text-muted-foreground sm:inline">{user.email}</span>
+              <span className="hidden max-w-[10rem] truncate text-[11px] text-muted-foreground md:inline">
+                {user.email}
+              </span>
             )}
             <button
               type="button"
               onClick={() => signOut()}
-              className="flex items-center gap-1 rounded-md border border-border/60 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary/60"
+              className="flex shrink-0 items-center gap-1 rounded-md border border-border/60 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary/60"
             >
               <LogOut className="size-3" />
-              Sign out
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
@@ -347,19 +353,21 @@ function Analyzer({ user }: { user: User | null }) {
           <label htmlFor="meds" className="sr-only">
             Your list
           </label>
-          <div className="flex items-start gap-3">
-            <Search className="mt-2.5 size-4 shrink-0 text-muted-foreground" />
-            <Textarea
-              id="meds"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) analyze();
-              }}
-              placeholder={`e.g. Aspirin, Ibuprofen, Fish Oil\nOr paste a multi-line prescription list`}
-              className="min-h-[96px] flex-1 resize-none border-0 bg-transparent px-0 py-3 text-sm leading-snug text-foreground shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
-              rows={4}
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="flex flex-1 items-start gap-3">
+              <Search className="mt-2.5 size-4 shrink-0 text-muted-foreground" />
+              <Textarea
+                id="meds"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) analyze();
+                }}
+                placeholder={`e.g. Aspirin, Ibuprofen, Fish Oil\nOr paste a multi-line prescription list`}
+                className="min-h-[96px] flex-1 resize-none border-0 bg-transparent px-0 py-3 text-sm leading-snug text-foreground shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
+                rows={4}
+              />
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -372,25 +380,27 @@ function Analyzer({ user }: { user: User | null }) {
                 if (file) handleImageSelected(file);
               }}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={ocrReading}
-              onClick={() => fileInputRef.current?.click()}
-              className="shrink-0"
-              title="Scan text from a photo of packaging or a label"
-            >
-              <Camera className="size-4" />
-            </Button>
-            <Button
-              onClick={() => analyze()}
-              disabled={status === "loading" || !value.trim()}
-              size="sm"
-              className="shrink-0 bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
-            >
-              {status === "loading" ? "Analyzing…" : "Analyze"}
-            </Button>
+            <div className="flex shrink-0 items-center gap-2 self-end sm:self-start">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={ocrReading}
+                onClick={() => fileInputRef.current?.click()}
+                className="shrink-0"
+                title="Scan text from a photo of packaging or a label"
+              >
+                <Camera className="size-4" />
+              </Button>
+              <Button
+                onClick={() => analyze()}
+                disabled={status === "loading" || !value.trim()}
+                size="sm"
+                className="shrink-0 bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
+              >
+                {status === "loading" ? "Analyzing…" : "Analyze"}
+              </Button>
+            </div>
           </div>
           {ocrReading && (
             <p className="mt-2 text-[11px] text-muted-foreground">Reading text from image…</p>
@@ -432,9 +442,11 @@ function Analyzer({ user }: { user: User | null }) {
                   <li key={d.input} className="rounded-lg border border-border/70 bg-secondary/40 p-2.5">
                     {d.medication ? (
                       <>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-semibold text-foreground">{d.medication.name}</span>
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                          <span className="min-w-0 break-words text-sm font-semibold text-foreground">
+                            {d.medication.name}
+                          </span>
+                          <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                             {d.medication.drugClass}
                           </span>
                         </div>
@@ -500,13 +512,13 @@ function Analyzer({ user }: { user: User | null }) {
                       key={`${i.medications[0].id}-${i.medications[1].id}`}
                       className="rounded-lg border border-border/70 p-2.5"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className={`size-1.5 rounded-full ${style.dot}`} />
-                        <span className="text-sm font-semibold text-foreground">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={`size-1.5 shrink-0 rounded-full ${style.dot}`} />
+                        <span className="min-w-0 flex-1 break-words text-sm font-semibold text-foreground">
                           {i.medications[0].name} + {i.medications[1].name}
                         </span>
                         <span
-                          className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${style.chip}`}
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${style.chip}`}
                         >
                           {style.label}
                         </span>
