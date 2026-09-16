@@ -15,6 +15,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
+  updateProfile,
   type User,
 } from "firebase/auth";
 
@@ -36,8 +37,15 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
   return onAuthStateChanged(auth, callback);
 }
 
-export async function signUpWithEmail(email: string, password: string): Promise<void> {
-  await createUserWithEmailAndPassword(auth, email, password);
+export async function signUpWithEmail(email: string, password: string, name: string): Promise<void> {
+  // displayName lives on Firebase's own user record, same as the email
+  // already does — not our backend/database, so this doesn't change the
+  // "we don't store medication or user data ourselves" decision.
+  const credential = await createUserWithEmailAndPassword(auth, email, password);
+  const trimmedName = name.trim();
+  if (trimmedName) {
+    await updateProfile(credential.user, { displayName: trimmedName });
+  }
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<void> {

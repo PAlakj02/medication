@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 
-import { SimpleHeader } from "@/components/simple-header";
+import { AppHeader } from "@/components/app-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/contact")({
@@ -20,7 +20,7 @@ const CONTACT_EMAIL = "hello@saltcheck.app";
 function Contact() {
   return (
     <div className="min-h-screen bg-background">
-      <SimpleHeader />
+      <AppHeader />
       <main className="mx-auto max-w-3xl px-5 py-8">
         <h1 className="text-xl font-bold text-foreground">Contact us</h1>
         <p className="mt-2 text-sm text-muted-foreground">

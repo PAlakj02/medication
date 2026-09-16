@@ -8,13 +8,13 @@ import {
   Clock,
   HelpCircle,
   Info,
-  LogOut,
   Pill,
   Search,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 
+import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,6 +117,7 @@ function Index() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
@@ -135,7 +136,7 @@ function Index() {
     setAuthSubmitting(true);
     try {
       if (authMode === "sign-up") {
-        await signUpWithEmail(email, password);
+        await signUpWithEmail(email, password, name);
       } else {
         await signInWithEmail(email, password);
       }
@@ -156,80 +157,99 @@ function Index() {
 
   if (authStatus === "signed-out") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-5">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <ShieldCheck className="size-5" />
-          </span>
-          <h1 className="text-lg font-bold text-foreground">SaltCheck</h1>
-          <p className="max-w-xs text-xs text-muted-foreground">
-            {authMode === "sign-up" ? "Create an account" : "Sign in"} to analyze your medications and
-            supplements for interactions.
+      <div className="flex min-h-screen flex-col bg-background">
+        <AppHeader />
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-5 py-10">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <ShieldCheck className="size-5" />
+            </span>
+            <h1 className="text-lg font-bold text-foreground">SaltCheck</h1>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              {authMode === "sign-up" ? "Create an account" : "Sign in"} to analyze your medications and
+              supplements for interactions.
+            </p>
+          </div>
+
+          <form onSubmit={submitAuth} className="mx-auto flex w-full max-w-xs flex-col gap-3">
+            {authMode === "sign-up" && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="name" className="text-xs">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password" className="text-xs">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete={authMode === "sign-up" ? "new-password" : "current-password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={authSubmitting}
+              className="bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
+            >
+              {authSubmitting ? "Please wait…" : authMode === "sign-up" ? "Create account" : "Sign in"}
+            </Button>
+            {signInError && <p className="text-xs text-danger">{signInError}</p>}
+          </form>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode((m) => (m === "sign-up" ? "sign-in" : "sign-up"));
+              setSignInError(null);
+            }}
+            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          >
+            {authMode === "sign-up" ? "Already have an account? Sign in" : "Need an account? Create one"}
+          </button>
+
+          <p className="max-w-xs text-center text-[11px] text-muted-foreground/80">
+            We only use this to identify you. No medication data is stored or linked to your account.
           </p>
         </div>
-
-        <form onSubmit={submitAuth} className="flex w-full max-w-xs flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email" className="text-xs">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password" className="text-xs">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={authMode === "sign-up" ? "new-password" : "current-password"}
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={authSubmitting}
-            className="bg-cta font-bold text-cta-foreground shadow-sm hover:bg-cta/90"
-          >
-            {authSubmitting ? "Please wait…" : authMode === "sign-up" ? "Create account" : "Sign in"}
-          </Button>
-          {signInError && <p className="text-xs text-danger">{signInError}</p>}
-        </form>
-
-        <button
-          type="button"
-          onClick={() => {
-            setAuthMode((m) => (m === "sign-up" ? "sign-in" : "sign-up"));
-            setSignInError(null);
-          }}
-          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-        >
-          {authMode === "sign-up" ? "Already have an account? Sign in" : "Need an account? Create one"}
-        </button>
-
-        <p className="max-w-xs text-center text-[11px] text-muted-foreground/80">
-          We only use this to identify you. No medication data is stored or linked to your account.
-        </p>
       </div>
     );
   }
 
-  return <Analyzer user={user} />;
+  return <Analyzer />;
 }
 
-function Analyzer({ user }: { user: User | null }) {
+function Analyzer() {
   const [value, setValue] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
@@ -290,53 +310,7 @@ function Analyzer({ user }: { user: User | null }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <ShieldCheck className="size-4" />
-            </span>
-            <div className="leading-tight">
-              <h1 className="text-sm font-bold text-foreground">SaltCheck</h1>
-              <p className="hidden text-[11px] text-muted-foreground sm:block">
-                Medication & supplement analyzer
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
-              <span className="relative flex size-1.5 shrink-0">
-                <span
-                  className={`absolute inline-flex size-1.5 animate-ping rounded-full ${
-                    health === "ok" ? "bg-success/30" : "bg-danger/30"
-                  }`}
-                />
-                <span
-                  className={`relative inline-flex size-1.5 rounded-full ${
-                    health === "ok" ? "bg-success/60" : "bg-danger/60"
-                  }`}
-                />
-              </span>
-              <span className="hidden sm:inline">
-                {health === "checking" ? "Checking engine…" : health === "ok" ? "Engine online" : "Engine offline"}
-              </span>
-            </div>
-            {user?.email && (
-              <span className="hidden max-w-[10rem] truncate text-[11px] text-muted-foreground md:inline">
-                {user.email}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={() => signOut()}
-              className="flex shrink-0 items-center gap-1 rounded-md border border-border/60 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary/60"
-            >
-              <LogOut className="size-3" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader health={health} onSignOut={() => signOut()} />
 
       <main className="mx-auto max-w-5xl px-5 pb-10 pt-5">
         <section className="flex flex-col gap-0.5 pb-3">

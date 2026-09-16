@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SimpleHeader } from "@/components/simple-header";
+import { AppHeader } from "@/components/app-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/terms")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/terms")({
 function Terms() {
   return (
     <div className="min-h-screen bg-background">
-      <SimpleHeader />
+      <AppHeader />
       <main className="mx-auto max-w-3xl px-5 py-8">
         <h1 className="text-xl font-bold text-foreground">Terms & Privacy</h1>
         <p className="mt-1 text-[11px] text-muted-foreground">
