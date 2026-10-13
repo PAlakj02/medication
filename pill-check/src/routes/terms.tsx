@@ -6,8 +6,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms & Privacy — SaltCheck" },
-      { name: "description", content: "SaltCheck's terms of use and privacy practices." },
+      { title: "Terms & Privacy — CompatiPill" },
+      { name: "description", content: "CompatiPill's terms of use and privacy practices." },
     ],
   }),
   component: Terms,
@@ -28,7 +28,7 @@ function Terms() {
           <section>
             <h2 className="font-semibold">Not medical advice</h2>
             <p className="mt-1 text-muted-foreground">
-              SaltCheck is an informational tool, not a medical device, and does not provide
+              CompatiPill is an informational tool, not a medical device, and does not provide
               medical advice, diagnosis, or treatment. Always consult a licensed pharmacist or
               physician before starting, stopping, or changing any medication or supplement.
               Never disregard professional medical advice because of something you see in this
@@ -69,7 +69,7 @@ function Terms() {
           <section>
             <h2 className="font-semibold">No warranty</h2>
             <p className="mt-1 text-muted-foreground">
-              SaltCheck is provided "as is," without warranties of any kind. We do not guarantee
+              CompatiPill is provided "as is," without warranties of any kind. We do not guarantee
               the accuracy, completeness, or timeliness of any information shown. To the fullest
               extent permitted by law, we are not liable for any decision made based on this
               app's output.

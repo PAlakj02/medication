@@ -7,15 +7,15 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — SaltCheck" },
-      { name: "description", content: "Get in touch about SaltCheck." },
+      { title: "Contact — CompatiPill" },
+      { name: "description", content: "Get in touch about CompatiPill." },
     ],
   }),
   component: Contact,
 });
 
 // PLACEHOLDER — replace once the real domain/inbox exists.
-const CONTACT_EMAIL = "hello@saltcheck.app";
+const CONTACT_EMAIL = "hello@compatipill.com";
 
 function Contact() {
   return (

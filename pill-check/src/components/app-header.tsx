@@ -27,7 +27,7 @@ export function AppHeader({ health, onSignOut }: AppHeaderProps) {
             <ShieldCheck className="size-4" />
           </span>
           <div className="leading-tight">
-            <h1 className="text-sm font-bold text-foreground">SaltCheck</h1>
+            <h1 className="text-sm font-bold text-foreground">CompatiPill</h1>
             <p className="hidden text-[11px] text-muted-foreground sm:block">
               Medication & supplement analyzer
             </p>

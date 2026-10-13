@@ -1,4 +1,4 @@
-# API Contract — Pill Check / SaltCheck
+# API Contract — Pill Check / CompatiPill
 
 Derived from a full read of the frontend source (`src/routes/index.tsx`,
 `src/lib/med-data.ts`) as of the current `main`. **The frontend currently makes

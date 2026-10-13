@@ -6,10 +6,10 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — SaltCheck" },
+      { title: "About — CompatiPill" },
       {
         name: "description",
-        content: "What SaltCheck is, how it checks medication interactions, and where its data comes from.",
+        content: "What CompatiPill is, how it checks medication interactions, and where its data comes from.",
       },
     ],
   }),
@@ -21,9 +21,9 @@ function About() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-3xl px-5 py-8">
-        <h1 className="text-xl font-bold text-foreground">About SaltCheck</h1>
+        <h1 className="text-xl font-bold text-foreground">About CompatiPill</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          SaltCheck helps you check whether the medications and supplements you're taking might
+          CompatiPill helps you check whether the medications and supplements you're taking might
           interact, and surfaces basic dosing-timing guidance where we have it.
         </p>
 
@@ -31,7 +31,7 @@ function About() {
           <section>
             <h2 className="font-semibold">How it works</h2>
             <p className="mt-1 text-muted-foreground">
-              SaltCheck never lets an AI model decide whether an interaction exists. Every
+              CompatiPill never lets an AI model decide whether an interaction exists. Every
               interaction warning comes from a deterministic lookup against real, sourced
               interaction data (currently{" "}
               <a href="http://ddinter.scbdd.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline">

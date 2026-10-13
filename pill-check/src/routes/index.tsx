@@ -34,13 +34,13 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SaltCheck — Medication & Supplement Safety Analyzer" },
+      { title: "CompatiPill — Medication & Supplement Safety Analyzer" },
       {
         name: "description",
         content:
           "Paste your medications and supplements to instantly see active salts, interaction warnings, and safer alternatives.",
       },
-      { property: "og:title", content: "SaltCheck — Medication & Supplement Safety Analyzer" },
+      { property: "og:title", content: "CompatiPill — Medication & Supplement Safety Analyzer" },
       {
         property: "og:description",
         content:
@@ -164,7 +164,7 @@ function Index() {
             <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ShieldCheck className="size-5" />
             </span>
-            <h1 className="text-lg font-bold text-foreground">SaltCheck</h1>
+            <h1 className="text-lg font-bold text-foreground">CompatiPill</h1>
             <p className="max-w-xs text-xs text-muted-foreground">
               {authMode === "sign-up" ? "Create an account" : "Sign in"} to analyze your medications and
               supplements for interactions.
@@ -598,7 +598,7 @@ function Analyzer() {
 
         <p className="mx-auto mt-6 flex max-w-2xl items-start gap-2 text-[11px] text-foreground/80">
           <Info className="mt-0.5 size-3.5 shrink-0" />
-          SaltCheck is an informational tool and not medical advice. Always confirm with a pharmacist
+          CompatiPill is an informational tool and not medical advice. Always confirm with a pharmacist
           or physician before changing any medication.
         </p>
       </main>

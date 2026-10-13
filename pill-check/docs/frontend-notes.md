@@ -1,4 +1,4 @@
-# Frontend Notes — Pill Check / SaltCheck
+# Frontend Notes — Pill Check / CompatiPill
 
 Companion to `docs/api-contract.md`. Covers structure, state, routing, and the
 assumptions baked into the current frontend that will constrain backend
@@ -21,7 +21,7 @@ RootShell                          (src/routes/__root.tsx — <html>/<head>/<bod
          │                          code outside the Lovable preview iframe)
          └─ Index                  (src/routes/index.tsx — the ONLY route/page)
             ├─ header (inline JSX, not extracted)
-            │   ├─ logo + "SaltCheck" title
+            │   ├─ logo + "CompatiPill" title
             │   └─ "Engine online" status pill (STATIC — not wired to anything)
             ├─ input section (inline JSX)
             │   ├─ Textarea (shadcn/ui)
