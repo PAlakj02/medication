@@ -259,10 +259,16 @@ function Analyzer() {
   const [ocrError, setOcrError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Poll rather than check once: the free-tier backend sleeps when idle, so the
+  // first check after a cold start can fail even though it's up seconds later.
   useEffect(() => {
-    checkHealth()
-      .then((r) => setHealth(r.status))
-      .catch(() => setHealth("down"));
+    const check = () =>
+      checkHealth()
+        .then((r) => setHealth(r.status))
+        .catch(() => setHealth("down"));
+    check();
+    const id = setInterval(check, 20_000);
+    return () => clearInterval(id);
   }, []);
 
   const handleImageSelected = async (file: File) => {
