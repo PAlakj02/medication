@@ -21,6 +21,8 @@ mechanism/source_text fields carry, so it's a legitimate (if unpolished)
 explanation, not a placeholder string.
 """
 
+import re
+
 import requests
 
 from app.config import get_settings
@@ -53,13 +55,18 @@ def _call_llm(prompt: str) -> str | None:
                 # Low temperature: this text renders a clinical finding, not
                 # creative writing — stay close to the given mechanism/source.
                 "temperature": 0.2,
-                "max_tokens": 300,
+                # gpt-oss spends part of this budget on hidden reasoning; at
+                # 300 the visible answer was getting cut off mid-sentence.
+                "max_tokens": 1024,
             },
             timeout=_REQUEST_TIMEOUT_SECONDS,
         )
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"]
-        return content.strip() or None
+        choice = response.json()["choices"][0]
+        # A length-truncated answer ends mid-sentence — use the template.
+        if choice.get("finish_reason") == "length":
+            return None
+        return _to_plain_text(choice["message"]["content"]) or None
     except (requests.RequestException, KeyError, IndexError, ValueError):
         return None
 
@@ -69,12 +76,22 @@ def _build_prompt(request: ExplanationRequest) -> str:
         "Explain the following medication interaction finding in plain,"
         " patient-facing language. Use ONLY the mechanism and source excerpt"
         " given below — do not introduce any clinical claim that isn't"
-        " already stated in them.\n\n"
+        " already stated in them. Write 2-4 short sentences of plain text:"
+        " no Markdown, no headings, no bullet points, no bold or italics.\n\n"
         f"Ingredients: {request.ingredient_a_name} + {request.ingredient_b_name}\n"
         f"Severity: {request.severity}\n"
         f"Mechanism: {request.mechanism}\n"
         f"Source ({request.source_name}): \"{request.source_text}\"\n"
     )
+
+
+def _to_plain_text(text: str) -> str:
+    """The frontend renders this as plain text, so strip any Markdown the
+    model emits anyway (bold/italic markers, headings, list bullets)."""
+    text = re.sub(r"[*_`#]+", "", text)
+    text = re.sub(r"(^|\s)[-•]\s+", r"\1", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip(" -")
 
 
 def _template_fallback(request: ExplanationRequest) -> str:
