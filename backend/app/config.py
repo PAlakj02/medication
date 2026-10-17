@@ -47,6 +47,8 @@ class Settings(BaseSettings):
         "http://localhost:8081",
         "http://localhost:8082",
         "https://medication-one.vercel.app",
+        "https://compatipill.com",
+        "https://www.compatipill.com",
     ]
 
 
